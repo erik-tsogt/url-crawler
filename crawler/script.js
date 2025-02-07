@@ -1,12 +1,12 @@
 const cheerio = require("cheerio");
-const { URL } = require("url");
+const { URL } = require("url"); 
 
-const baseUrl = "https://stackoverflow.com/questions";
-const baseDomain = new URL(baseUrl).hostname;
+const baseUrl = "https://www.bbc.com/news";
+const baseDomain = new URL(baseUrl).hostname; 
 
 const queue = new Set([baseUrl]);
 const visited = new Set();
-const maxPages = 10;
+const MAX_PAGES = 10;
 
 async function fetchPage(url) {
     try {
@@ -27,13 +27,11 @@ function extractLinks(html, currentUrl) {
     if (!html) return;
 
     const $ = cheerio.load(html);
-
     $("a").each((_, element) => {
         let link = $(element).attr("href");
         if (!link) return;
-
         link = link.trim();
-
+        
         // convert relative links to absolute links
         try {
             link = new URL(link, currentUrl).href

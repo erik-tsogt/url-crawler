@@ -33,4 +33,4 @@ class Crawler {
 }
 
 const crawler = new Crawler(baseUrl, maxPages);
-//crawler.crawl();
+crawler.crawl();
