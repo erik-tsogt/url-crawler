@@ -1,58 +1,36 @@
-const axios = require("axios");
-const cheerio = require("cheerio");
-const targetUrl = "https://stackoverflow.com/questions";
-const MAX_DEPTH = 20;
+const { URL } = require("url");
+const { fetchPage } = require("./fetcher");
+const { extractLinks } = require("./parser");
+const { baseUrl, maxPages, headers } = require("./config");
 
-
-let queue = new Set(); 
-let visited = new Set();
-
-async function fetchPage(url) {
-    try {
-        const response = await axios.get(url);
-        return response.data;
-    } catch (err) {
-        console.error(`Error fetching ${url}`, err.message);
-        return null;
+class Crawler {
+    constructor(baseUrl, maxPages) {
+        this.baseUrl = baseUrl;
+        this.baseDomain = new URL(baseUrl).hostname;
+        this.maxPages = maxPages;
+        this.queue = new Set([baseUrl]);
+        this.visited = new Set();
     }
-}
 
-function extractLinks(html) {
-    const $ = cheerio.load(html) // Load the HTML content
-    let links = [];
+    async crawl() {
+        while (this.queue.size > 0 && this.visited.size < this.maxPages) {
+            const url = this.queue.values().next().value;
+            this.queue.delete(url);
+    
+            if (this.visited.has(url)) continue;
+            this.visited.add(url);
+            console.log(`Crawling: ${url}`);
+    
+            const html = await fetchPage(url, headers);
+            if (!html) continue;
 
-    $("a").each((index, element) => {
-        const link = $(element).attr("href");
-        if (link && link.startsWith("http")) {
-            links.push(link);
+            const newLinks = extractLinks(html, url, this.baseDomain, this.visited);
+            newLinks.forEach((link) => this.queue.add(link));
         }
-    })
-    return links;
-}
-
-async function crawl(startUrl, maxPages = MAX_DEPTH) {
-    queue.add(startUrl);
-
-    while (queue.size > 0 && visited.size < maxPages) {
-        const url = queue.values().next().value;
-        queue.delete(url);
-        visited.add(url);
-
-        console.log(`Crawling: ${url}`);
-        const html = await fetchPage(url);
-        if (!html) continue;
-
-        const links = extractLinks(html);
-        links.forEach((link) => {
-            if (!visited.has(link) && !queue.has(link)) {
-                queue.add(link);
-            }
-        });
-        console.log(`queue size: ${queue.size}, visited size: ${visited.size}`);
-        console.log(`Found ${links.length} links.`);
+        console.log(`Crawl complete! \n queue size: ${queue.size}, visited size: ${visited.size}`);
+        console.log("------------------------------------------")
     }
-    console.log("Crawling complete!");
 }
 
-// Start the crawler
-crawl(targetUrl, 10);
+const crawler = new Crawler(baseUrl, maxPages);
+//crawler.crawl();
