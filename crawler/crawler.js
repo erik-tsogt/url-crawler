@@ -23,12 +23,13 @@ class Crawler {
     
             const html = await fetchPage(url, headers);
             if (!html) continue;
-
+            
             const newLinks = extractLinks(html, url, this.baseDomain, this.visited);
             newLinks.forEach((link) => this.queue.add(link));
         }
-        console.log(`Crawl complete! \n queue size: ${queue.size}, visited size: ${visited.size}`);
-        console.log("------------------------------------------")
+        console.log(`Crawl complete! \n queue size: ${this.queue.size}, visited size: ${this.visited.size}`);
+        console.log("------------------------------------------");
+        console.log(this.queue);
     }
 }
 

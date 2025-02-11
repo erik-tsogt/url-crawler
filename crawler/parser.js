@@ -13,14 +13,13 @@ function extractLinks(html, currentUrl, baseDomain, visited) {
 
         link = link.trim();
 
-        // convert relative links to absolute links
         try {
             link = new URL(link, currentUrl).href
         } catch {
             console.warn(`Invalid URL skipped: ${link}`);
             return;
         }
-        // filter other domain links
+
         if (new URL(link).hostname === baseDomain && !visited.has(link)) {
             links.push(link);
         }

@@ -1,5 +1,3 @@
-const fetch = require("node-fetch");
-
 async function fetchPage(url, headers) {
     try {
         const response = await fetch(url, {headers});

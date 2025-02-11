@@ -18,7 +18,7 @@ async function fetchPage(url) {
 
         return await response.text();
     } catch (error) {
-        console.error(`Error fetching URL: ${url}`, error.message);
+        console.error(`Error fetching URL: ${url}`, error.message); 
         return null;
     }
 }
@@ -32,21 +32,20 @@ function extractLinks(html, currentUrl) {
         if (!link) return;
         link = link.trim();
         
-        // convert relative links to absolute links
         try {
             link = new URL(link, currentUrl).href
         } catch {
             console.warn(`Invalid URL skipped: ${link}`);
             return;
         }
-        // filter other domain links
+
         if (new URL(link).hostname === baseDomain && !visited.has(link)) {
             queue.add(link);
         }
     });
 }
 
-async function crawl(maxPages = 10) {
+async function crawl(maxPages = MAX_PAGES) {
     while (queue.size > 0 && visited.size < maxPages) {
         const url = queue.values().next().value;
         queue.delete(url);
