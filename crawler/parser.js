@@ -12,14 +12,13 @@ function extractLinks(html, currentUrl, baseDomain, visited) {
         if (!link) return;
 
         link = link.trim();
-
         try {
             link = new URL(link, currentUrl).href
         } catch {
             console.warn(`Invalid URL skipped: ${link}`);
             return;
         }
-
+        console.log(baseDomain);
         if (new URL(link).hostname === baseDomain && !visited.has(link)) {
             links.push(link);
         }

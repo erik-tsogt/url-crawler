@@ -1,10 +1,7 @@
 const Redis = require("ioredis");
 require("dotenv").config();
 
-const client = new Redis({
-    url: process.env.REDIS_URL, 
-    token: process.env.TOKEN
-});
+const client = new Redis(process.env.REDIS_URL);
 
 client.on("connect", () => {
     console.log("Connected to Redis.");

@@ -1,7 +1,26 @@
 const { URL } = require("url");
 const { fetchPage } = require("./fetcher");
 const { extractLinks } = require("./parser");
+const { redisClient } = require("./redisClient");
 const { baseUrl, maxPages, headers } = require("./config");
+
+async function enqueueUrl(url) {
+    try {
+        await redisClient.rpush("urlQueue", url);
+    } catch (error) {
+        console.error("Error Enqueueing URL: ", error.message);
+    }
+}
+
+async function dequeueUrl() {
+    try {
+        const removedUrl = await redisClient.lpop("urlQueue");
+        return removedUrl;
+    } catch (error) {
+        console.error("Error Dequeueing URL: ", error.message);
+        return null;
+    }
+}
 
 class Crawler {
     constructor(baseUrl, maxPages) {

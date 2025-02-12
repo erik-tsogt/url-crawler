@@ -17,6 +17,6 @@
   "dependencies": {
     "cheerio": "^1.0.0",
     "dotenv": "^16.4.7",
-    "redis": "^4.7.0"
+    "ioredis": "^5.5.0"
   }
 }
