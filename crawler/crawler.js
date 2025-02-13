@@ -1,56 +1,48 @@
 const { URL } = require("url");
 const { fetchPage } = require("./fetcher");
 const { extractLinks } = require("./parser");
-const { redisClient } = require("./redisClient");
 const { baseUrl, maxPages, headers } = require("./config");
-
-async function enqueueUrl(url) {
-    try {
-        await redisClient.rpush("urlQueue", url);
-    } catch (error) {
-        console.error("Error Enqueueing URL: ", error.message);
-    }
-}
-
-async function dequeueUrl() {
-    try {
-        const removedUrl = await redisClient.lpop("urlQueue");
-        return removedUrl;
-    } catch (error) {
-        console.error("Error Dequeueing URL: ", error.message);
-        return null;
-    }
-}
+const { enqueueUrl, dequeueUrl, isVisited, markVisited } = require("./redisQueue");
 
 class Crawler {
     constructor(baseUrl, maxPages) {
         this.baseUrl = baseUrl;
-        this.baseDomain = new URL(baseUrl).hostname;
         this.maxPages = maxPages;
-        this.queue = new Set([baseUrl]);
-        this.visited = new Set();
+        this.baseDomain = new URL(baseUrl).hostname;
     }
 
     async crawl() {
-        while (this.queue.size > 0 && this.visited.size < this.maxPages) {
-            const url = this.queue.values().next().value;
-            this.queue.delete(url);
-    
-            if (this.visited.has(url)) continue;
-            this.visited.add(url);
-            console.log(`Crawling: ${url}`);
-    
+        await enqueueUrl(this.baseUrl);
+
+        let pagesCrawled = 0;
+        while (pagesCrawled < this.maxPages) {
+            const url = await dequeueUrl();
+            if (!url) {
+                console.log("Queue is empty. Crawling end.")
+                break;
+            }
+
+            if (await isVisited(url)) {
+                continue;
+            }
+
+            await markVisited(url);
+            pagesCrawled++;
+            console.log(`Crawling (${pagesCrawled}): ${url}`);
+
             const html = await fetchPage(url, headers);
             if (!html) continue;
-            
-            const newLinks = extractLinks(html, url, this.baseDomain, this.visited);
-            newLinks.forEach((link) => this.queue.add(link));
+            const newLinks = extractLinks(html, url, this.baseDomain);
+
+            for (const link of newLinks) {
+                if (!(await isVisited(link))) {
+                    await enqueueUrl(link);
+                }
+            }
         }
-        console.log(`Crawl complete! \n queue size: ${this.queue.size}, visited size: ${this.visited.size}`);
-        console.log("------------------------------------------");
-        console.log(this.queue);
+        console.log("Crawling complete.");
+
     }
 }
-
 const crawler = new Crawler(baseUrl, maxPages);
 crawler.crawl();

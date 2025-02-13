@@ -1,7 +1,7 @@
 const cheerio = require("cheerio");
 const { URL } = require("url");
 
-function extractLinks(html, currentUrl, baseDomain, visited) {
+function extractLinks(html, currentUrl, baseDomain) {
     const links = []; 
     if (!html) return;
 
@@ -18,8 +18,7 @@ function extractLinks(html, currentUrl, baseDomain, visited) {
             console.warn(`Invalid URL skipped: ${link}`);
             return;
         }
-        console.log(baseDomain);
-        if (new URL(link).hostname === baseDomain && !visited.has(link)) {
+        if (new URL(link).hostname === baseDomain) {
             links.push(link);
         }
     });
