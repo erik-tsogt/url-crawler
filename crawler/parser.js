@@ -2,10 +2,10 @@ const cheerio = require("cheerio");
 const { URL } = require("url");
 
 function extractLinks(html, currentUrl, baseDomain) {
-    const links = []; 
-    if (!html) return;
+    if (!html) return new Set();
 
     const $ = cheerio.load(html);
+    const links = new Set();
 
     $("a").each((_, element) => {
         let link = $(element).attr("href");
@@ -13,13 +13,13 @@ function extractLinks(html, currentUrl, baseDomain) {
 
         link = link.trim();
         try {
-            link = new URL(link, currentUrl).href
+            const absoluteUrl = new URL(link, currentUrl).href;
+            if (new URL(absoluteUrl).hostname === baseDomain) {
+                links.add(absoluteUrl);
+            }
         } catch {
             console.warn(`Invalid URL skipped: ${link}`);
             return;
-        }
-        if (new URL(link).hostname === baseDomain) {
-            links.push(link);
         }
     });
 

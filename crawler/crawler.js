@@ -2,7 +2,7 @@ const { URL } = require("url");
 const { fetchPage } = require("./fetcher");
 const { extractLinks } = require("./parser");
 const { baseUrl, maxPages, headers } = require("./config");
-const { enqueueUrl, dequeueUrl, isVisited, markVisited } = require("./redisQueue");
+const { enqueueUrl, dequeueUrl, isVisited, markVisited } = require("./redisTaskManager");
 
 class Crawler {
     constructor(baseUrl, maxPages) {
@@ -41,7 +41,6 @@ class Crawler {
             }
         }
         console.log("Crawling complete.");
-
     }
 }
 const crawler = new Crawler(baseUrl, maxPages);

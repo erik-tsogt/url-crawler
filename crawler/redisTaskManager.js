@@ -2,8 +2,12 @@ const redisClient = require("./redisClient");
 
 async function enqueueUrl(url) {
     try {
-        await redisClient.lpush("urlQueue", url);
-        console.log(`Enqueued: ${url}`)
+        const isAlreadyQueued = await redisClient.sismember("queuedUrls", url);
+        if (!isAlreadyQueued) {
+            await redisClient.sadd("queuedUrls", url);
+            await redisClient.lpush("urlQueue", url);
+            console.log(`Enqueued: ${url}`)
+        }
     } catch (error) {
         console.error("Error Enqueueing URL: ", error.message);
     }
